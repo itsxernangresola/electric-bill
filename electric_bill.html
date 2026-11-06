@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electric Bill Calculator (Philippines)</title>
+</head>
+<style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fdb147;
+            color: black;
+            padding: 25px;
+            width: 100%;
+        }
+        .title {
+            font-size: 1.5em;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            min-height: 100vh;
+            background-color: #f1f1f1;
+        }
+        .input-section, .output-section {
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-section {
+            max-width: 60%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .output-section {
+            max-width: 40%;
+            background-color: lightblue;
+            border-left: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-section label, 
+        .input-section input {
+            width: 100%;
+            padding: 5px;
+        }
+        .output-section p {
+            margin: 10px 0;
+        }
+        .button {
+            margin-top: 15px;
+            padding: 10px 5px;
+            background-color: #fdb147;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+        .button:hover:enabled {
+            background-color: #e2993e;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .input-section, 
+            .output-section {
+                max-width: 100%;
+            }
+        }
+        @media print {
+            body, html {
+                overflow: visible !important;
+                margin: 0;
+                padding: 0;
+                height: auto;
+                width: auto;
+            }
+            .header {
+                display: flex !important;
+                width: 100%;
+            }
+            .container {
+                display: block;
+                margin: 0;
+                padding: 0;
+            }
+            .input-section {
+                display: none !important;
+            }
+            .output-section {
+                width: 100% !important;
+                padding: 20px !important;
+                background-color: white !important;
+            }
+            .output-section p {
+                font-size: 14px;
+                margin: 5px 0;
+            }
+            .button {
+                display: none !important;
+            }
+        }
+</style>
+<body>
+    <header class="header">
+        <p class="title">Electric Bill Calculator (Philippines)</p>
+    </header>
+    <div class="container">
+        <div class="input-section"> 
+            <label for="kwh">ENTER KWH CONSUMED:</label>
+            <input type="number" id="kwh" placeholder="e.g., 350" required>
+
+            <label for="baseFee">BASE FEE (₱):</label>
+            <input type="number" id="baseFee" value="20" required>
+
+            <label for="generationCharge">GENERATION CHARGE PER KWH (₱):</label>
+            <input type="number" id="generationCharge" value="6.5" step="0.02" required>
+
+            <label for="transmissionCharge">TRANSMISSION CHARGE PER KWH (₱):</label>
+            <input type="number" id="transmissionCharge" value="1.2" step="0.01" required>
+
+            <label for="systemLossCharge">SYSTEM LOSS CHARGE PER KWH (₱):</label>
+            <input type="number" id="systemLossCharge" value="0.98" step="0.01" required>
+
+            <label for="vat">VAT RATE (%):</label>
+            <input type="number" id="vat" value="12" step="0.01" required>
+
+            <button class="button" onclick="calculateBill()">CALCULATE BILL</button>
+        </div>
+
+        <div class="output-section"> 
+            <p><strong>ELECTRIC BILL</strong></p>
+            <p>BASE FEE: ₱<span id="baseFeeDisplay"></span></p>
+            <p>KWH CONSUMED: <span id="kwhDisplay"></span> KWH</p>
+            <p>GENERATION CHARGE: ₱<span id="generationChargeDisplay"></span></p>
+            <p>TRANSMISSION CHARGE: ₱<span id="transmissionChargeDisplay"></span></p>
+            <p>SYSTEM LOSS CHARGE: ₱<span id="systemLossChargeDisplay"></span></p>
+            <p>VAT: ₱<span id="vatDisplay"></span></p>
+            <p><strong>TOTAL BILL: ₱<span id="totalBill"></span></strong></p>
+            <button class="button" id="printBill" onclick="printBill()" disabled>PRINT BILL</button> 
+        </div>
+    </div>
+    <script>
+        function calculateBill() {
+            const kwh = parseFloat(document.getElementById("kwh").value) || 0;
+            const baseFee = parseFloat(document.getElementById("baseFee").value) || 0;
+            const generationChargePerKwh = parseFloat(document.getElementById("generationCharge").value) || 0;
+            const transmissionChargePerKwh = parseFloat(document.getElementById("transmissionCharge").value) || 0;
+            const systemLossChargePerKwh = parseFloat(document.getElementById("systemLossCharge").value) || 0;
+            const vatRate = parseFloat(document.getElementById("vat").value) || 0;
+    
+            // Calculation of charges
+            const generationCharge = (kwh * generationChargePerKwh).toFixed(2);
+            const transmissionCharge = (kwh * transmissionChargePerKwh).toFixed(2);
+            const systemLossCharge = (kwh * systemLossChargePerKwh).toFixed(2);
+    
+            // VAT and total
+            const subtotal = baseFee + parseFloat(generationCharge) + parseFloat(transmissionCharge) + parseFloat(systemLossCharge);
+            const vat = ((subtotal * vatRate) / 100).toFixed(2);
+            const totalBill = (subtotal + parseFloat(vat)).toFixed(2);
+    
+            // Display result
+            document.getElementById("baseFeeDisplay").innerText = baseFee.toFixed(2);
+            document.getElementById("kwhDisplay").innerText = kwh.toFixed(2);
+            document.getElementById("generationChargeDisplay").innerText = generationCharge;
+            document.getElementById("transmissionChargeDisplay").innerText = transmissionCharge;
+            document.getElementById("systemLossChargeDisplay").innerText = systemLossCharge;
+            document.getElementById("vatDisplay").innerText = vat;
+            document.getElementById("totalBill").innerText = totalBill;
+    
+            // Enable the print button
+            document.getElementById("printBill").disabled = false;
+        }
+    
+        function printBill() {
+            // Opens the print dialog
+            window.print();
+        }
+    </script>    
+</body>
+</html>
